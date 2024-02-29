@@ -46,8 +46,22 @@ resource "google_cloudbuild_trigger" "distributor_docker" {
     step {
       name = "gcr.io/cloud-builders/docker"
       args = [
+        "buildx",
+        "create",
+        "--use",
+        "--driver-opt",
+        "image=moby/buildkit:v0.13.0-beta2"
+      ]
+    }
+    step {
+      name = "gcr.io/cloud-builders/docker"
+      args = [
+        "buildx",
         "build",
+        "--build-arg", "SOURCE_DATE_EPOCH=0",
+        "--output", "type=image,name=${local.docker_image},push=true,rewrite-timestamp=true",
         "-t", "${local.docker_image}:$SHORT_SHA",
+        "-t", "${local.docker_image}:latest",
         "-t", "${local.docker_image}:latest",
         "-f", "./cmd/Dockerfile",
         "."
